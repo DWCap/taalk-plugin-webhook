@@ -92,7 +92,7 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 			}			
 		} else {
 			const low = raw.toLowerCase();
-			let idx;
+			let idx = -1;
 			if( low.indexOf('first') !== -1 ) {
 				idx = 0;
 			} else if( low.indexOf('second') !== -1 ) {
@@ -104,7 +104,7 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 			// throw new createError.BadRequest('Must have a date');
 		}
 
-		if( undefined === closest ) {
+		if( undefined !== closest ) {
 			const payload = humanFriendlyFormat(closest);
 			return res.json({payload});
 		} else {
