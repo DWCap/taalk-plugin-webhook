@@ -43,6 +43,9 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 		
 		const sessionId = req.headers['x-taalk-session'] as string;
 		const startFrom = chrono.parseDate(req.query.start as string);
+
+		console.log(`Query calendar for ${sessionId}, start from ${startFrom}`)
+
 		if( startFrom ) {
 			const session = {
 				session: sessionId,
@@ -55,6 +58,10 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 			RECENT_SESSIONS[sessionId] = session;
 			// genreate some dates after this time;
 			const payload = session.candidates.map(humanFriendlyFormat)
+
+			console.log(`Candidates`)
+			console.dir(payload);
+
 			return res.json({ payload })
 		} else {
 			throw new createError.BadRequest('Must have a range');
@@ -63,30 +70,45 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 
 	app.post('/make_appointment', (req: Request, res: Response) => {
 		const sessionId = req.headers['x-taalk-session'] as string;
-		const date = chrono.parseDate(req.body.date as string);
+		const raw = req.body.date as string;
+		const date = chrono.parseDate(raw);
+		console.log(`Make appointment for ${sessionId}, at ${raw}(${date})`);
+		const s =	RECENT_SESSIONS[sessionId];
+		if( !s ) {
+			throw new createError.BadRequest('Unknown session');
+		}
+		
 
+		let closest;
 		if( date ) {
-			const s =	RECENT_SESSIONS[sessionId];
-			if( !s ) {
-				throw new createError.BadRequest('Unknown session');
-			}
 			// find the closest 
 			const input = date.valueOf();
-			let min = Infinity, closest;
+			let min = Infinity;
 			for( let d of s.candidates ) {
 				const dist = Math.abs(d-input);
 				if( dist < min ) {
 					closest = d;
 				}
-			}
-			if( undefined === closest ) {
-				const payload = humanFriendlyFormat(closest);
-				return res.json({payload});
-			} else {
-				throw new createError.InternalServerError('no candidates');
-			}
+			}			
 		} else {
-			throw new createError.BadRequest('Must have a date');
+			const low = raw.toLowerCase();
+			let idx;
+			if( low.indexOf('first') !== -1 ) {
+				idx = 0;
+			} else if( low.indexOf('second') !== -1 ) {
+				idx = 1;
+			} else if( low.indexOf('last') !== -1 ) {
+				idx = s.candidates.length-1;
+			}
+			closest = s.candidates[idx];
+			// throw new createError.BadRequest('Must have a date');
+		}
+
+		if( undefined === closest ) {
+			const payload = humanFriendlyFormat(closest);
+			return res.json({payload});
+		} else {
+			throw new createError.InternalServerError('no candidates');
 		}
 
 	});
