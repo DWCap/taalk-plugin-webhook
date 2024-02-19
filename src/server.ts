@@ -84,6 +84,7 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 		const { headers } = req;
 		console.log('query calendar');
 		console.dir(headers);
+		console.dir(req.body);
 
 		/*
 			GHL auth
