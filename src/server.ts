@@ -129,8 +129,9 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 		}
 
 		if( undefined !== closest ) {
-			const payload = humanFriendlyFormat(closest);
-			return res.json({payload});
+			const date = humanFriendlyFormat(closest);
+			const link = "https://lets.taalk.com?v="+closest;
+			return res.json({payload:{date,link}});
 		} else {
 			throw new createError.InternalServerError('no candidates');
 		}
