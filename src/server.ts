@@ -3,7 +3,6 @@ import createError, { HttpError } from 'http-errors'
 import bodyParser from 'body-parser';
 import * as chrono from 'chrono-node';
 import dayjs from 'dayjs';
-// import mongoose from "mongoose";
 
 type ServerParam = {
 	isDev?: boolean;
@@ -11,12 +10,7 @@ type ServerParam = {
 	hostname: string;
 }
 
-// export async function connectMongo() {
-// 	const uri = process.env.WEB_APP_MONGO_URI || 'mongodb://127.0.0.1:27017/test';
-// 	return mongoose.connect(uri);
-// }
-
-// this is just a demo, dont do this in the production unless you are sure you only have one dyno
+// this is just a demo, dont do this in the production unless you are sure you only have one instance
 interface ISessionData {
 	session: string;
 	timestamp: number;
@@ -35,7 +29,6 @@ function humanFriendlyFormat(timestamp:number) {
 export function server({ isDev = false, port, hostname }: ServerParam ) {
 
 	const app: Express = express();
-	// const uploader = multer();
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: false}));
 	
@@ -55,7 +48,7 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 		const sessionId = headers['x-taalk-session'] as string;
 		const startFrom = chrono.parseDate(req.query.start as string);
 
-		console.log(`Query calendar for ${sessionId}, start from ${startFrom}`)
+		console.log(`Query calendar for ${sessionId}, start from ${startFrom}`);
 
 		if( startFrom ) {
 			const session = {
@@ -137,19 +130,12 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 		}
 
 	});
-
-
-	// app.post('/upload', uploader.single('file'), onUploadKBFile );
 		
 	// production error handler
 	// no stacktraces leaked to user
 	app.use((err:HttpError, req:Request, res:Response, next:NextFunction)=>{
 		res.status(err.status || 500);
 		res.send(err.message);
-		// res.render('error', {
-		// 	message: err.message,
-		// 	error: (app.get('env') === 'development') ? err : {},
-		// });
 	});
 
 	// catch 404 and forward to error handler
