@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npx tsc",
-    "start": "NODE_ENV=production node dist/src/main.js",
+    "start": "NODE_ENV=production node dist/main.js",
     "dev": "NODE_ENV=development nodemon src/main.ts --watch"
   },
   "author": "",
