@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "npx tsc",
-    "start": "cross-env NODE_ENV=production node dist/src/main.js",
-    "dev": "cross-env NODE_ENV=development nodemon src/main.ts --watch"
+    "start": "NODE_ENV=production node dist/src/main.js",
+    "dev": "NODE_ENV=development nodemon src/main.ts --watch"
   },
   "author": "",
   "license": "ISC",

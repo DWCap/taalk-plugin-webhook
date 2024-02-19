@@ -2,7 +2,7 @@ import express, { Express, NextFunction, Request, Response } from 'express';
 import createError, { HttpError } from 'http-errors'
 import bodyParser from 'body-parser';
 import * as chrono from 'chrono-node';
-import { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 // import mongoose from "mongoose";
 
 type ServerParam = {
@@ -25,7 +25,7 @@ interface ISessionData {
 const RECENT_SESSIONS: Record<string,ISessionData> = {}
 
 function humanFriendlyFormat(timestamp:number) {
-	const d = new Dayjs(timestamp);
+	const d = dayjs(timestamp);
 	return d.format('MMMM D, dddd, h A');				
 }
 
@@ -40,8 +40,19 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 	app.use(bodyParser.urlencoded({extended: false}));
 	
 	app.get('/query_calendar', (req: Request, res: Response) => {
+
+		const { headers } = req;
+		console.log('query calendar');
+		console.dir(headers);
+
+		/*
+			GHL auth
+			const locationId = headers["x-auth-ghl-location"];
+			const token = headers["x-auth-token"];
+			const refreshToken = headers["x-refresh-token"];
+		*/
 		
-		const sessionId = req.headers['x-taalk-session'] as string;
+		const sessionId = headers['x-taalk-session'] as string;
 		const startFrom = chrono.parseDate(req.query.start as string);
 
 		console.log(`Query calendar for ${sessionId}, start from ${startFrom}`)
@@ -53,7 +64,7 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 				candidates: [
 					startFrom.valueOf() + Math.ceil(Math.random()*7*24*3600)*1000,
 					startFrom.valueOf() + Math.ceil(Math.random()*7*24*3600)*1000,
-				]
+				].sort()
 			}
 			RECENT_SESSIONS[sessionId] = session;
 			// genreate some dates after this time;
@@ -69,7 +80,19 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 	});
 
 	app.post('/make_appointment', (req: Request, res: Response) => {
-		const sessionId = req.headers['x-taalk-session'] as string;
+
+		const { headers } = req;
+		console.log('query calendar');
+		console.dir(headers);
+
+		/*
+			GHL auth
+			const locationId = headers["x-auth-ghl-location"];
+			const token = headers["x-auth-token"];
+			const refreshToken = headers["x-refresh-token"];
+		*/
+
+		const sessionId = headers['x-taalk-session'] as string;
 		const raw = req.body.date as string;
 		const date = chrono.parseDate(raw);
 		console.log(`Make appointment for ${sessionId}, at ${raw}(${date})`);
@@ -88,6 +111,7 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 				const dist = Math.abs(d-input);
 				if( dist < min ) {
 					closest = d;
+					min = dist;
 				}
 			}			
 		} else {
@@ -101,7 +125,6 @@ export function server({ isDev = false, port, hostname }: ServerParam ) {
 				idx = s.candidates.length-1;
 			}
 			closest = s.candidates[idx];
-			// throw new createError.BadRequest('Must have a date');
 		}
 
 		if( undefined !== closest ) {
